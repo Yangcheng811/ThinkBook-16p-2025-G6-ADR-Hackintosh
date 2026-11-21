@@ -1,0 +1,7 @@
+.DS_Store
+Thumbs.db
+opencore-*.txt
+panic-*.txt
+*.bak
+config.plist.orig
+config.plist.before_*
