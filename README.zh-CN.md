@@ -49,7 +49,7 @@
 ### 已知限制
 - **背光低亮度回绕**：NullMoth v3.0 在这块 eDP 面板（`DPCD 0x701=0x9b 0x702=0xa7`）上存在已知 Bug（[nvidia-macos-driver #556](https://github.com/nullmoth/nvidia-macos-driver/issues/556)），硬件亮度在 **25%–100%** 区间正常，低于 ~20% 时会发生寄存器位宽回绕跳回最亮。如需 0%–100% 全量程平滑调光，可在 `boot-args` 中加入 `nvfbedpbl=0` 并在 macOS 内使用开源的 **MonitorControl**（或 **BetterDisplay**）接管 `F5`/`F6`。
 - **隔空投送（AirDrop）/ 随航（Sidecar）**：联发科 MT7925 驱动目前尚未实现苹果私有 AWDL 协议（[WTLWireless #8](https://github.com/watchthelight-labs/WTLWireless/issues/8)），局域网互传文件推荐使用免费开源的 **LocalSend**。
-- **睡眠唤醒**：`WTLWireless` 当前未实现睡眠唤醒恢复，建议在 macOS 系统设置中关闭自动休眠。
+- **睡眠唤醒**：上游 `WTLWireless` 目前尚未正式实现睡眠/唤醒恢复逻辑；不过在本机（macOS 26.7.3 + `WTLWireless` v0.15.0 + `WTLWirelessBt` v0.15.0）实测手动睡眠约 1.5 分钟后唤醒，**未出现内核崩溃（Panic）**，Wi-Fi（`"MtkState" = "W6 pass: en1 passing traffic"`）与蓝牙（已连接 AirPods；`"MtkBtState" = "ready"`、`"MtkBtStep" = "done"`）均保持正常可用。长时间深度睡眠的稳定性仍待进一步观察。
 
 ---
 

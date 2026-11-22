@@ -49,7 +49,7 @@
 ### Known Limitations
 - **Backlight Low-Brightness Wrap-Around**: NullMoth v3.0 has a known bug on this eDP panel (`DPCD 0x701=0x9b 0x702=0xa7`, [nvidia-macos-driver #556](https://github.com/nullmoth/nvidia-macos-driver/issues/556)). Hardware brightness works smoothly from **25%–100%**, but wraps back to full brightness below ~20%. If you need smooth 0%–100% dimming, add `nvfbedpbl=0` to `boot-args` and use open-source **MonitorControl** (or **BetterDisplay**) for software dimming via `F5`/`F6`.
 - **AirDrop / Sidecar**: The MediaTek MT7925 driver does not yet implement Apple's proprietary AWDL protocol ([WTLWireless #8](https://github.com/watchthelight-labs/WTLWireless/issues/8)). Use free & open-source **LocalSend** for fast cross-device LAN file transfers.
-- **Sleep / Wake**: `WTLWireless` currently does not restore state after sleep; disabling automatic system sleep in macOS System Settings is recommended.
+- **Sleep / Wake**: Upstream `WTLWireless` does not officially implement sleep/wake handling yet. However, on this laptop (macOS 26.7.3 with `WTLWireless` v0.15.0 + `WTLWirelessBt` v0.15.0), a short manual sleep (~1.5 minutes) and wake succeeded with **no kernel panic** — both Wi-Fi (`"MtkState" = "W6 pass: en1 passing traffic"`) and Bluetooth (with AirPods connected; `"MtkBtState" = "ready"`, `"MtkBtStep" = "done"`) remained working. Extended / deep sleep stability still needs further observation.
 
 ---
 
