@@ -1,23 +1,4 @@
 @echo off
-chcp 65001 >nul
-net session >nul 2>&1
-if %errorlevel% neq 0 (
-    echo [ERROR] Please right-click and "Run as administrator"!
-    echo 请右键以【管理员身份运行】此文件！
-    pause
-    exit /b 1
-)
-
-echo Setting Windows hardware clock (RTC) to UTC (RealTimeIsUniversal = 1)...
-reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\TimeZoneInformation" /v RealTimeIsUniversal /t REG_DWORD /d 1 /f
-
-echo Syncing Windows time now...
-sc config w32time start= auto >nul 2>&1
-net start w32time >nul 2>&1
-w32tm /resync /force
-
-echo.
-echo Done! Both Windows and macOS will now use UTC for hardware clock (no more 8-hour jump).
-echo 完成！现在 Windows 和 macOS 统一使用 UTC 硬件时钟，双系统切换不再倒退 8 小时。
+powershell -NoProfile -ExecutionPolicy Bypass -Command "try { $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator); if (-not $isAdmin) { throw 'Please right-click this file and select Run as administrator!' }; Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\TimeZoneInformation' -Name 'RealTimeIsUniversal' -Value 1 -Type DWord; Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power' -Name 'HiberbootEnabled' -Value 0 -Type DWord; $v = (Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\TimeZoneInformation' -Name 'RealTimeIsUniversal').RealTimeIsUniversal; if ($v -ne 1) { throw 'Failed to write RealTimeIsUniversal = 1' }; sc.exe config w32time start= auto | Out-Null; net start w32time 2>$null | Out-Null; w32tm /config /manualpeerlist:'ntp.aliyun.com,0x9 time.windows.com,0x9' /syncfromflags:manual /update | Out-Null; w32tm /resync /force; Write-Host ('SUCCESS: RealTimeIsUniversal = ' + $v + ', Current Time = ' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')) -ForegroundColor Green } catch { Write-Host ('ERROR: ' + $_.Exception.Message) -ForegroundColor Red }"
 echo.
 pause
