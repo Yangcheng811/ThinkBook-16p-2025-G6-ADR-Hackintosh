@@ -4,7 +4,7 @@
   <b>English</b> | <a href="README.zh-CN.md">简体中文</a>
 </p>
 
-**OpenCore 1.0.9** Hackintosh EFI and complete installation guide for the **Lenovo ThinkBook 16p 2025 (G6 ADR / Model `21U0`)**, powered by **NullMoth `1401` + `nvidia-macos-driver` v3.0** for **NVIDIA GeForce RTX 5060 Laptop GPU** Metal 3 acceleration, tested and verified on **macOS 26.7.3 (Tahoe)**.
+**OpenCore 1.0.9** Hackintosh EFI and complete installation guide for the **Lenovo ThinkBook 16p 2025 (G6 ADR / Model `21U0`)**, powered by **NullMoth `1401` + `nvidia-macos-driver` v3.0** for **NVIDIA GeForce RTX 5060 Laptop GPU** Metal 3 acceleration, tested and verified on **macOS 26.7.3 – 26.7.4 (Tahoe)**.
 
 > **Disclaimer & Safety Notes**
 > 1. `PlatformInfo > Generic` (Serial Number / MLB / UUID / ROM) in this repository is sanitized with placeholders. **You MUST generate your own SMBIOS (`MacPro7,1`) before booting.**
@@ -36,7 +36,7 @@
 | **dGPU** | NVIDIA GeForce RTX 5060 Laptop GPU (`10DE:2D59`, 8 GB) | Working | **Full Metal 3 hardware acceleration** via NullMoth v3.0 |
 | **iGPU** | AMD Radeon 610M (`1002:164E`) | Disabled | Disabled via `DeviceProperties` (`disable-gpu`) |
 | **Internal Display** | CSOT `MNG007DA6-2` (2560×1600, eDP, wired to dGPU) | Working | Brightness & `F5`/`F6` hotkeys work (see Known Limitations) |
-| **Wi-Fi** | MediaTek Wi-Fi 7 MT7925 (`14C3:7925`, `17AA:E0FF`) | Working | `WTLWireless.kext` v0.15.0 + `WTLWirelessNative.kext` (**Native Wi-Fi icon on 26.7.1–26.7.3**) |
+| **Wi-Fi** | MediaTek Wi-Fi 7 MT7925 (`14C3:7925`, `17AA:E0FF`) | Working | `WTLWireless.kext` v0.15.0 + `WTLWirelessNative.kext` (**Native Wi-Fi icon on 26.7.1–26.7.4**) |
 | **Bluetooth** | MediaTek Bluetooth (`0489:E111`) | Working | `BlueToolFixup` v2.7.2 + `LegionBtFix` v0.3.0 + `WTLWirelessBt` v0.15.0 |
 | **Audio** | Realtek ALC3287 / ALC257 (`10EC:0257`, `17AA:3E22`, AMD `1022:15E3`) | Working | **`SimpleHDA` v1.0.1 + `AppleALC` v1.9.9** (`layout-id = 18` + `nmxaudio=2`), both internal stereo speakers & 3.5mm auto-switching work |
 | **HDMI/DP Audio** | NVIDIA High Definition Audio (`10DE:22EB`) | Working | `NMXAudio.kext` (`nmxaudio=2` restricts it to NVIDIA HDMI/DP only) |
@@ -72,6 +72,11 @@ If you are building a Hackintosh on a similar AMD Ryzen 9 8945HX (Dragon Range) 
    - Added **`ps2kbdonly=1 ps2rst=0`** to `boot-args` to prevent `VoodooPS2Controller` from probing non-existent PS/2 mouse ports or hard-resetting the 8042 EC across warm macOS reboots;
    - Set `UEFI > Input` `TimerResolution = 0` (respecting Insyde's native 10ms timer), `KeyFiltering = True`, and `TakeoffDelay = 500000`;
    - Disabled Windows Fast Startup (`HiberbootEnabled = 0`).
+5. **Fix macOS S5 Shutdown Turning into Reboot & Improve Dual-Boot Windows Compatibility**:
+   - Added custom **`SSDT-FixShutdown.aml`** + DSDT `_PTS -> ZPTS` (`5F50545301` → `5A50545301`, `Count = 1`) guarded by `_OSI("Darwin") && Arg0 == 0x05`: dynamically walks the PCI Capability List (Cap ID `0x01`) on `\_SB.PCI0.GP17.XHC0`, `\_SB.PCI0.GP17.XHC1`, and `\_SB.PCI0.GP19.XHC2` to clear `PME_En` and `PME_Status` before S5 power-off;
+   - Added `_OSI("Darwin")` guard to **`SSDT-ALIBFix.aml`** so non-macOS OSes forward `\_SB.ALIB` back to `\_SB.XLIB`;
+   - Updated **`WTLWirelessNative.kext`** `MtkNativeAbi` allow-list for **macOS 26.7.4** (`xnu-12377.`), preserving the live 15-class `OSMetaClass::getClassSize()` runtime safety guard;
+   - **Dual-Boot Tip**: If you use Windows 11 Hibernate / Fast Startup, set **`Windows Boot Manager`** first in BIOS and press **`F12`** to boot `OpenCore` for macOS so Windows never receives OpenCore's global DSDT IRQ patches.
 
 ---
 

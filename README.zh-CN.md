@@ -4,7 +4,7 @@
   <a href="README.md">English</a> | <b>简体中文</b>
 </p>
 
-适用于 **联想 ThinkBook 16p 2025（G6 ADR / 型号 `21U0`）** 的 **OpenCore 1.0.9** 黑苹果 EFI 与完整安装指南，基于 **NullMoth `1401` + `nvidia-macos-driver` v3.0** 驱动 **RTX 5060 Laptop GPU**（Metal 3 硬件加速），实测运行 **macOS 26.7.3 (Tahoe)**。
+适用于 **联想 ThinkBook 16p 2025（G6 ADR / 型号 `21U0`）** 的 **OpenCore 1.0.9** 黑苹果 EFI 与完整安装指南，基于 **NullMoth `1401` + `nvidia-macos-driver` v3.0** 驱动 **RTX 5060 Laptop GPU**（Metal 3 硬件加速），实测运行 **macOS 26.7.3 – 26.7.4 (Tahoe)**。
 
 > **免责声明与安全提示**
 > 1. 本仓库中的 `PlatformInfo > Generic`（序列号 / MLB / UUID / ROM）已脱敏为占位符，**使用前必须自行生成三码**（机型 `MacPro7,1`）。
@@ -36,7 +36,7 @@
 | **独立显卡** | NVIDIA GeForce RTX 5060 Laptop GPU (`10DE:2D59`, 8 GB) | 正常 | **Metal 3 硬件加速**（通过 NullMoth v3.0 驱动） |
 | **核显** | AMD Radeon 610M (`1002:164E`) | 已屏蔽 | `DeviceProperties` 注入 `disable-gpu` |
 | **内置屏幕** | CSOT `MNG007DA6-2` (2560×1600, eDP, 独显直连) | 正常 | 亮度和 `F5`/`F6` 快捷键可用（见下方已知限制） |
-| **无线网卡** | MediaTek Wi-Fi 7 MT7925 (`14C3:7925`, `17AA:E0FF`) | 正常 | `WTLWireless.kext` v0.15.0 + `WTLWirelessNative.kext`（**26.7.1–26.7.3 原生 Wi-Fi 图标**） |
+| **无线网卡** | MediaTek Wi-Fi 7 MT7925 (`14C3:7925`, `17AA:E0FF`) | 正常 | `WTLWireless.kext` v0.15.0 + `WTLWirelessNative.kext`（**26.7.1–26.7.4 原生 Wi-Fi 图标**） |
 | **蓝牙** | MediaTek Bluetooth (`0489:E111`) | 正常 | `BlueToolFixup` v2.7.2 + `LegionBtFix` v0.3.0 + `WTLWirelessBt` v0.15.0 |
 | **声卡** | Realtek ALC3287 / ALC257 (`10EC:0257`, `17AA:3E22`, AMD `1022:15E3`) | 正常 | **`SimpleHDA` v1.0.1 + `AppleALC` v1.9.9**（`layout-id = 18` + `nmxaudio=2`），内置双扬声器 & 3.5mm 耳机自动切换均正常 |
 | **HDMI/DP 音频** | NVIDIA High Definition Audio (`10DE:22EB`) | 正常 | `NMXAudio.kext`（`nmxaudio=2` 仅接管 NVIDIA HDMI/DP） |
@@ -72,6 +72,11 @@
    - 在 `boot-args` 加入 **`ps2kbdonly=1 ps2rst=0`**，防止 macOS 热重启时 `VoodooPS2Controller` 探测不存在的 PS/2 鼠标口或硬复位 8042 控制器导致联想 EC 锁死；
    - `UEFI > Input` 设置 `TimerResolution = 0`（不强改 Insyde 10ms 原生定时器）、`KeyFiltering = True`、`TakeoffDelay = 500000`；
    - 在 Windows 中关闭快速启动（`HiberbootEnabled = 0`）。
+5. **解决 macOS 关机变重启 / 不断电，并适配 macOS 26.7.4 原生 Wi-Fi**：
+   - 新增定制 **`SSDT-FixShutdown.aml`** 与 DSDT `_PTS -> ZPTS`（`5F50545301` → `5A50545301`，`Count = 1`），仅在 `_OSI("Darwin") && Arg0 == 0x05`（macOS S5 关机）时动态遍历 `\_SB.PCI0.GP17.XHC0`、`\_SB.PCI0.GP17.XHC1`、`\_SB.PCI0.GP19.XHC2` 的 PCI Capability List（Cap ID `0x01`），清零 `PME_En` 并清除 `PME_Status`，彻底解决关机变重启/不断电；
+   - 为 **`SSDT-ALIBFix.aml`** 补齐 `_OSI("Darwin")` 保护，避免在非 macOS 系统下吞掉 AMD 原厂 `\_SB.ALIB` 调用；
+   - 更新 **`WTLWirelessNative.kext`** 的 `MtkNativeAbi` 白名单以支持 **macOS 26.7.4**（`xnu-12377.`），同时完整保留全部 15 个内核类的实时 `OSMetaClass::getClassSize()` 安全校验；
+   - **双系统提示**：如需在 Windows 11 中正常使用休眠/快速启动，建议在 BIOS 中将 **`Windows Boot Manager`** 放第一启动项，进 macOS 时开机按 **`F12`** 选 `OpenCore`，避免 OpenCore 的全局 DSDT IRQ 补丁影响 Windows 电源管理。
 
 ---
 
