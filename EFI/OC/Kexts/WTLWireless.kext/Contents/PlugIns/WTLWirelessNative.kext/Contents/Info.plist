@@ -157,7 +157,7 @@
 					</dict>
 					<dict>
 						<key>Build</key>
-						<string>26.7.4</string>
+						<string>25G422</string>
 						<key>Sizes</key>
 						<dict>
 							<key>IO80211CommandGate</key>
@@ -192,7 +192,7 @@
 							<integer>360</integer>
 						</dict>
 						<key>Xnu</key>
-						<string>xnu-12377.</string>
+						<string>xnu-12377.161.15.702.20~1</string>
 					</dict>
 				</array>
 			</dict>

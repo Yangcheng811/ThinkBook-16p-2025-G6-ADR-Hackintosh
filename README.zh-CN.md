@@ -1,173 +1,63 @@
-# Lenovo ThinkBook 16p 2025 (G6 ADR) Hackintosh EFI — macOS 26 Tahoe
+# Lenovo ThinkBook 16p 2025 (G6 ADR) Hackintosh EFI — AMD Radeon 610M 核显驱动分支 (`RembrandtGfx`, `v0.1.0-alpha`)
 
 <p align="center">
   <a href="README.md">English</a> | <b>简体中文</b>
 </p>
 
-适用于 **联想 ThinkBook 16p 2025（G6 ADR / 型号 `21U0`）** 的 **OpenCore 1.0.9** 黑苹果 EFI 与完整安装指南，基于 **NullMoth `1401` + `nvidia-macos-driver` v3.0** 驱动 **RTX 5060 Laptop GPU**（Metal 3 硬件加速），实测运行 **macOS 26.7.3 – 26.7.4 (Tahoe)**。
-
-> **免责声明与安全提示**
-> 1. 本仓库中的 `PlatformInfo > Generic`（序列号 / MLB / UUID / ROM）已脱敏为占位符，**使用前必须自行生成三码**（机型 `MacPro7,1`）。
-> 2. **AMD 平台严禁关闭 `Booter > Quirks > DisableVariableWrite = True`**（当开启 `DevirtualiseMmio` 或 `SetupVirtualMap` 时，macOS 直接写固件 NVRAM 可能导致部分 AMD 主板无法 POST）。
+> **分支说明（`igpu-610m-rembrandtgfx` — 早期可用版 / Bring-Up `v0.1.0-alpha`）**
+> - 本分支发布 **ThinkBook 16p 2025 G6 ADR (Ryzen 9 8945HX)** 的 **AMD Radeon 610M (`1002:164e`) 核显驱动 + 完整 OpenCore 1.0.9 引导 EFI**，基于 [caoshiyuan0211-blip/winmax2-2022-6800u-hackintosh](https://github.com/caoshiyuan0211-blip/winmax2-2022-6800u-hackintosh) 的 `RembrandtGfx` 移植适配 **Raphael (`gfx1036`)**（仿冒 Navi 23 `0x73ff` RX 6600），在 **macOS 26.7.4 (`25G422`)** 下启用 Metal 硬件加速，并兼容配合 **NullMoth 3.1** 启用 RTX 5060。
+> - 如需日常稳定使用的 **独显直连（RTX 5060）** 正式版 EFI，请切换到 [`main`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/tree/main) 分支（`v1.1.0`）。
+> - **隐私脱敏**：`EFI/OC/config.plist` 中 `PlatformInfo > Generic` 已还原为占位符，**使用前请自行生成 `MacPro7,1` 三码**。
 
 ---
 
-## 实机截图
+## 实机截图（macOS 26.7.4 Tahoe — 混合 / 双显卡模式）
 
-| macOS 26.7.3 Tahoe 桌面（Liquid Glass & 原生 Wi-Fi 7） | 关于本机（RTX 5060 8 GB Metal 3） |
+| 关于本机（`AMD Radeon RX 6600 1 GB`） | 系统信息（610M `0x73ff` Metal + RTX 5060） |
 | :---: | :---: |
-| ![macOS 26.7.3 Tahoe 桌面](assets/macos-desktop.jpg) | ![关于本机 - RTX 5060](assets/about-this-mac.jpg) |
-
-<details>
-<summary>Windows 11 硬件信息核验（ThinkBook 16p G6 ADR / Ryzen 9 8945HX / RTX 5060）</summary>
-
-![Windows 11 硬件信息](assets/windows-hardware-info.jpg)
-
-</details>
+| ![关于本机 - RX 6600 1 GB](assets/igpu-about-this-mac.jpg) | ![系统信息 - 双显卡识别](assets/igpu-system-info.jpg) |
 
 ---
 
-## 硬件配置与驱动状态
+## 已完成进度（已验证生效）
 
-| 硬件 | 规格 | 状态 | 驱动 / 说明 |
-|---|---|---|---|
-| **机型 / 主板** | Lenovo ThinkBook 16p 2025 (G6 ADR, `21U0`, `LNVNB161216`) | 正常 | BIOS `R7CN28WW`（需切换独显直连） |
-| **处理器** | AMD Ryzen 9 8945HX (Dragon Range / Zen 4, 16C/32T) | 正常 | AMD Vanilla Patches + `ForgedInvariant.kext` v1.5.0 |
-| **独立显卡** | NVIDIA GeForce RTX 5060 Laptop GPU (`10DE:2D59`, 8 GB) | 正常 | **Metal 3 硬件加速**（通过 NullMoth v3.0 驱动） |
-| **核显** | AMD Radeon 610M (`1002:164E`) | 已屏蔽 | `DeviceProperties` 注入 `disable-gpu` |
-| **内置屏幕** | CSOT `MNG007DA6-2` (2560×1600, eDP, 独显直连) | 正常 | 亮度和 `F5`/`F6` 快捷键可用（见下方已知限制） |
-| **无线网卡** | MediaTek Wi-Fi 7 MT7925 (`14C3:7925`, `17AA:E0FF`) | 正常 | `WTLWireless.kext` v0.15.0 + `WTLWirelessNative.kext`（**26.7.1–26.7.4 原生 Wi-Fi 图标**） |
-| **蓝牙** | MediaTek Bluetooth (`0489:E111`) | 正常 | `BlueToolFixup` v2.7.2 + `LegionBtFix` v0.3.0 + `WTLWirelessBt` v0.15.0 |
-| **声卡** | Realtek ALC3287 / ALC257 (`10EC:0257`, `17AA:3E22`, AMD `1022:15E3`) | 正常 | **`SimpleHDA` v1.0.1 + `AppleALC` v1.9.9**（`layout-id = 18` + `nmxaudio=2`），内置双扬声器 & 3.5mm 耳机自动切换均正常 |
-| **HDMI/DP 音频** | NVIDIA High Definition Audio (`10DE:22EB`) | 正常 | `NMXAudio.kext`（`nmxaudio=2` 仅接管 NVIDIA HDMI/DP） |
-| **触控板** | I2C HID Touchpad (`SYNA2BA6`) | 正常 | `VoodooI2C` + `VoodooI2CHID` + `-vi2c-force-polling`（已剔除 `VoodooGPIOAMD` 防卡死） |
-| **键盘 & 快捷键** | PS/2 键盘 (`KBC8042`) + `F5`/`F6` 亮度键 | 正常 | `VoodooPS2Controller` v2.3.8（`ps2kbdonly=1 ps2rst=0`）+ `BrightnessKeys` v1.0.4 |
-| **NVMe 固态** | UMIS 1 TB NVMe (`1CC4:6C14`) | 正常 | `NVMeFix.kext` v1.1.4 |
-| **电池显示** | ACPI Battery | 正常 | `VirtualSMC` + `SMCBatteryManager` |
-| **引导与安全启动** | OpenCore 1.0.9 + UEFI Secure Boot | 正常 | 图形化界面 `OpenCanopy`（`Acidanthera\GoldenGate`），**已实测支持开启 UEFI 安全启动**（自签名 `.efi` + 保留联想原厂密钥） |
-
-### 已知限制
-- **背光低亮度回绕**：NullMoth v3.0 在这块 eDP 面板（`DPCD 0x701=0x9b 0x702=0xa7`）上存在已知 Bug（[nvidia-macos-driver #556](https://github.com/nullmoth/nvidia-macos-driver/issues/556)），硬件亮度在 **25%–100%** 区间正常，低于 ~20% 时会发生寄存器位宽回绕跳回最亮。如需 0%–100% 全量程平滑调光，可在 `boot-args` 中加入 `nvfbedpbl=0` 并在 macOS 内使用开源的 **MonitorControl**（或 **BetterDisplay**）接管 `F5`/`F6`。
-- **隔空投送（AirDrop）/ 随航（Sidecar）**：联发科 MT7925 驱动目前尚未实现苹果私有 AWDL 协议（[WTLWireless #8](https://github.com/watchthelight-labs/WTLWireless/issues/8)），局域网互传文件推荐使用免费开源的 **LocalSend**。
-- **睡眠唤醒**：本机 BIOS 仅支持 Windows 现代待机（**S0ix**），不支持 macOS 所需的传统 **ACPI S3** 系统级睡眠。经 `pmset sleepnow` 与 `pmset -g log` 实测核查，macOS 无法进入真正的系统级睡眠（日志无 `Entering Sleep` 记录，仅触发息屏 / `DarkWake to FullWake from Invalid`，风扇保持转动），同时上游 `WTLWireless` 目前也尚未实现 S3 唤醒恢复。仅息屏 / DarkWake 唤醒后 Wi-Fi 与蓝牙均保持正常可用；建议在 macOS 系统设置中关闭自动休眠，日常仅使用“关闭显示器（息屏）”。
+- **AMD Radeon 610M（`1002:164e`, Rev `0xd8`, Raphael `gfx1036`, 2 CU）基础驱动与 Metal 加速可用**：
+  - 完成 `RembrandtGfx.kext` 针对 Raphael 的移植（`0x164e` → `0x73ff` RX 6600、`KernelVersion::Tahoe`、替换 `linux-firmware` 的 `psp_13_0_5_*` / `gc_10_3_6_*` / `sdma_5_2_6` / `dcn_3_1_5_dmcub` 微码、SMU 13.0.5 消息号 `0x0A` / `0x17`、PowerPlay 时钟补丁 `wrapUpdateHWInfoClocks` 及禁用扫描输出 DCC `wrapShouldAllocScanoutDcc -> 0`）。
+  - macOS 26.7.4 (`25G422`) 可正常进桌面（`2560 × 1600`, 30 位色深 ARGB2101010）并启用 **Metal 硬件加速**（`102-RAPHAEL-008`, `1 GB` VRAM）。
+- **修复 DarkWake / 合盖触发的 ~21 秒黑屏**：
+  - 在 `sleep.cpp` 中加入 `clamshell-sleep` 阻断（日志实测 `RembrandtGfx: sleep: clamshell-sleep block active`），启动阶段不再出现 DarkWake / `setOutputPowerState(1)` 导致的黑屏。
+- **支持配合 NullMoth 3.1 启用 NVIDIA RTX 5060 Laptop GPU（`10de:2d59`, `17aa:8036`）**：
+  - 已在 `config.plist` 中解除 `com.nullmoth.*` 屏蔽并配置 `nvfb=1 nvaccel=1 nvfbheads=4 -nvkmsnosmooth nmxaudio=2`，实测 `NVRM-xnu` 与 `NVAccel` 正常加载（`NVAccel: createUserGPUTask -> init=1`）。
 
 ---
 
-## 本 EFI 的关键踩坑修复总结
+## 已知问题与待办（Known Issues / TODO — Alpha 早期版本）
 
-如果你在为同款或相近平台（AMD Ryzen 9 8945HX / Dragon Range + RTX 5060/5070 Laptop）折腾黑苹果，以下是本 EFI 已经集成好的关键修复：
-
-1. **解决 `pci (build ...)` 卡死**（AMD 8945HX + RTX 5060 经典卡点）：
-   - 启用内核补丁 `CaseySJ | IOPCIIsHotplugPort | Fix PCI bus enumeration on AM5 | 13.0+`；
-   - `Kernel > Block` 屏蔽 `com.apple.iokit.IONDRVSupport`；
-   - 加入 `ForgedInvariant.kext` v1.5.0（Zen 4 TSC 同步）；
-   - 关闭 `WhateverGreen.kext`，机型切换为 `MacPro7,1`（`ProcessorType = 3841`，`CustomSMBIOSGuid = True`）；
-   - 开启 `DisableRtcChecksum = True`、`LapicKernelPanic = True`、`DevirtualiseMmio = True` + 全量 4G 以下 `MmioWhitelist`（含 `0xFF000000`）+ `DisableVariableWrite = True` + `ResizeAppleGpuBars = 0`（安装期）。
-2. **解决联想 AMD 笔记本 `VoodooGPIOAMD` 启动卡死**：
-   - 保留 `VoodooGPIO.kext` 以满足 `VoodooI2C` 符号依赖，但从其 `Contents/Info.plist` 中移除了 `VoodooGPIOAMD` personality，并配合 `-vi2c-force-polling` 驱动 `SYNA2BA6` 触控板。
-3. **解决 macOS 26 Tahoe 声卡外放无声**：
-   - macOS 26 移除了原版 `AppleHDA.kext`；NullMoth 自带的 `NMXAudio.kext` 在本机上仅 3.5mm 耳机出声、内置扬声器无声（缺联想 ALC257/ALC3287 外放 EAPD/COEF 唤醒）。
-   - 使用 **`SimpleHDA.kext` v1.0.1** 通过 OpenCore 动态恢复原版 AppleHDA（不破坏系统卷快照），按严格顺序 `Lilu → AppleALC → SimpleHDA` 加载，配合 `DeviceProperties` 注入 `layout-id = <12000000>`（即 `18`）并在 `boot-args` 加 **`nmxaudio=2`**（让 `NMXAudio` 仅服务 NVIDIA HDMI/DP，互不冲突），内置扬声器与耳机自动切换完美工作。
-4. **解决联想 Insyde BIOS 下 OpenCore 偶尔识别不了键盘**：
-   - 在 `boot-args` 加入 **`ps2kbdonly=1 ps2rst=0`**，防止 macOS 热重启时 `VoodooPS2Controller` 探测不存在的 PS/2 鼠标口或硬复位 8042 控制器导致联想 EC 锁死；
-   - `UEFI > Input` 设置 `TimerResolution = 0`（不强改 Insyde 10ms 原生定时器）、`KeyFiltering = True`、`TakeoffDelay = 500000`；
-   - 在 Windows 中关闭快速启动（`HiberbootEnabled = 0`）。
-5. **解决 macOS 关机变重启 / 不断电，并适配 macOS 26.7.4 原生 Wi-Fi**：
-   - 新增定制 **`SSDT-FixShutdown.aml`** 与 DSDT `_PTS -> ZPTS`（`5F50545301` → `5A50545301`，`Count = 1`），仅在 `_OSI("Darwin") && Arg0 == 0x05`（macOS S5 关机）时动态遍历 `\_SB.PCI0.GP17.XHC0`、`\_SB.PCI0.GP17.XHC1`、`\_SB.PCI0.GP19.XHC2` 的 PCI Capability List（Cap ID `0x01`），清零 `PME_En` 并清除 `PME_Status`，彻底解决关机变重启/不断电；
-   - 为 **`SSDT-ALIBFix.aml`** 补齐 `_OSI("Darwin")` 保护，避免在非 macOS 系统下吞掉 AMD 原厂 `\_SB.ALIB` 调用；
-   - 更新 **`WTLWirelessNative.kext`** 的 `MtkNativeAbi` 白名单以支持 **macOS 26.7.4**（`xnu-12377.`），同时完整保留全部 15 个内核类的实时 `OSMetaClass::getClassSize()` 安全校验；
-   - **双系统提示**：如需在 Windows 11 中正常使用休眠/快速启动，建议在 BIOS 中将 **`Windows Boot Manager`** 放第一启动项，进 macOS 时开机按 **`F12`** 选 `OpenCore`，避免 OpenCore 的全局 DSDT IRQ 补丁影响 Windows 电源管理。
+1. **【核心稳定性阻塞】灰屏 / `WindowServer` 看门狗超时死锁（已定位指令级根因）**：
+   - **现象**：桌面静置或使用一段时间后可能突然灰屏/卡死，约 40 秒后触发 Watchdog 重启（`WindowServer.userspace_watchdog_timeout.spin`）。
+   - **根因**：当触发 `IOAccelEventMachine2::hardwareErrorEvent()` 并通过 `AMDRadeonX6000_AMDAccelChannel::getHardwareDiagnosisReport` 调用 `AMDRadeonX6000_AMDNavi23Hardware::collect_stb(AmdStbInfo*)` 时，读取 STB 寄存器 `0xecc182` 与 `0xecc183` 得到非零且不等的值；循环计数超过 `0x7ff`（2048）后分支跳过重读 `0xecc182`，导致 `AMDRadeonX6000_AMDAccelEventMachine` 内核线程持锁死循环，进而锁死 `ws_main_thread` 和 `HIDEvents`。
+   - **下个版本修复方案**：在 `probe.cpp` 中 hook `__ZN32AMDRadeonX6000_AMDNavi23Hardware11collect_stbEP10AmdStbInfo` 直接返回 `false`（已反汇编 `AMDRTHardware::writeSTBDiagnosisReport` 确认可安全释放 `0x400c` 缓冲区、无内存泄漏）。
+2. **【显存瓶颈】610M 1024 MB UMA 显存易耗尽（`AMD ERROR! Failed to allocate`）**：
+   - BIOS 给 610M 分配的 UMA 显存为 `FB: 1024 MB, Aper: 256 MB`（`ResizeAppleGpuBars` 无法扩大 BIOS 设定的 Aperture）。高分辨率下 `WindowServer` 与 Metal/Electron 应用会在 50–160 秒内快速耗尽 1024 MB 显存，进而更容易诱发渲染异常。如 BIOS 支持调大核显 UMA Frame Buffer Size（如 2GB/4GB），建议优先调大。
+3. **其他已知遗留项**：
+   - **内屏亮度最低全黑**：核显下将亮度调至最低仍会背光全黑。
+   - **休眠尚未恢复验证**：当前测试配置通过 `-rmbnousb4sleep -rmbnohalt -rmbnomode2 -rmbnosleep -rmbnodispsleep` 规避休眠，完整 S3/合盖休眠仍属实验状态。
+   - **部分短时重启（75–160s）**：待合入 `collect_stb` 死循环修复后再继续观察是否仍有独立重启诱因。
 
 ---
 
-## 完整安装教程
+## 当前 EFI 配置摘要
 
-### 一、BIOS 与硬件前置设置
-开机按 `F2` 进入联想 BIOS：
-1. **显卡模式（必须）**：在联想百应 / Legion Zone 或 BIOS 中切换为 **独显直连（Discrete Graphics）**，确保内置屏幕直连 RTX 5060。
-2. **Secure Boot（安全启动）**：安装期间先设为 **Disabled（关闭）**，装完后可按第 6 节重新开启。
-3. **Fast Boot（快速启动）**：建议设为 **Disabled（关闭）**。
-4. 在 Windows 下建议关闭“快速启动”（避免双系统下 EC 键盘状态残留及 NTFS 挂载风险）：
-   ```cmd
-   reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Power" /v HiberbootEnabled /t REG_DWORD /d 0 /f
-   ```
+- **`boot-args`**：
+  ```text
+  -v debug=0x100 keepsyms=1 nvfb=1 nvaccel=1 nvfbheads=4 -nvkmsnosmooth amfi_get_out_of_my_way=0x1 amfi=0x80 ipc_control_port_options=0 gfxrst=4 -vi2c-force-polling mtkfe=native mtknativeif=1 revpatch=sbvmm nmxaudio=2 ps2kbdonly=1 ps2rst=0 -lilubetaall -rmbnousb4sleep -rmbnohalt -rmbnomode2 -rmbnosleep -rmbnodispsleep
+  ```
+- **使用建议**：强烈建议先部署到**外接测试 U 盘（`OC_USB`）**试用，保留内置硬盘上稳定的 `main` 分支（RTX 5060 独显直连）EFI 不动。
+- **校验状态**：`EFI/OC/config.plist` 已通过 `ocvalidate 1.0.9` 校验（0 issues，`ResizeAppleGpuBars = 0`）。
 
 ---
 
-### 二、制作 macOS 26 Tahoe 安装 U 盘
-1. 准备一个 ≥ 16 GB 的 U 盘（会清空数据，提前备份）。
-2. 从 [nullmoth/1401 Releases](https://github.com/nullmoth/1401/releases) 下载最新版 `1401` Windows 工具，构建 **macOS 26 Tahoe** 恢复镜像 U 盘（工具会自动写入 `com.apple.recovery.boot` 和 `NullMoth/` 离线显卡驱动包 + NVIDIA 固件）。
-3. **替换 EFI**：删除 U 盘里的 `EFI` 文件夹，将本仓库的 `EFI` 文件夹复制到 U 盘根目录。
-4. **生成你自己的 SMBIOS 三码**：
-   - 使用 [GenSMBIOS](https://github.com/corpnewt/GenSMBIOS) 选择机型 **`MacPro7,1`**，生成新的 `SystemSerialNumber`、`MLB`、`SystemUUID`。
-   - 用 ProperTree / OCAT 打开 `EFI/OC/config.plist`，填入 `PlatformInfo > Generic` 替换占位符，保存。
-5. **复制辅助脚本到 U 盘**（确保均为 Unix `LF` 换行符，本仓库 `Scripts/` 中已转好）：
-   - 将 `Scripts/WTLWireless-Recovery/` 文件夹复制到 U 盘根目录并重命名为 `WTLWireless/`（用于恢复模式联网）；
-   - 将 `Scripts/finish-setup.sh` 覆盖到 U 盘 `NullMoth/finish-setup.sh`（避免 Windows `CRLF` 换行符导致恢复模式终端 `set` 报错）。
+## 致谢（Credits）
 
----
-
-### 三、从 U 盘启动并安装 macOS 26.7.3
-1. 重启按 `F12` 选择 U 盘启动，进入 OpenCore 图形菜单，选择 **`1401`**（Recovery 恢复环境）。
-2. **恢复模式下连接 Wi-Fi**：
-   - 恢复环境使用通用以太网模式联网，顶部菜单栏打开 **实用工具 → 终端**，执行：
-     ```bash
-     diskutil mount 1401
-     bash /Volumes/1401/WTLWireless/recovery-wifi.sh
-     ```
-     *(若 `diskutil mount 1401` 提示找不到，先执行 `diskutil list` 查看卷标为 `1401` 的分区号如 `disk2s1`，再运行 `diskutil mount disk2s1`。)*
-3. 打开 **磁盘工具**，将提前分好给 macOS 的分区抹掉为 **APFS** 格式（例如命名 `MacOS`），关闭磁盘工具。
-4. 选择 **重新安装 macOS Tahoe**，目标盘选刚才抹好的 `MacOS` 分区，开始在线下载并安装。
-5. 安装过程会**自动重启 3～4 次**：
-   - 因为 AMD 开启了 `DisableVariableWrite = True`，每次重启后请在 OpenCore 菜单中**手动选择 `macOS Installer`**；
-   - 最后一次重启后，`macOS Installer` 会变成 **`MacOS`**（同时出现 `Recovery 26.7.3`），首次进入 `MacOS` 走完收尾进度条后会再正常重启一次。
-
----
-
-### 四、跳过黑屏白指针首次向导（macOS 26 已知问题）
-未安装 RTX 5060 显卡驱动前，macOS 26 无法绘制首次设置向导界面，会出现**黑屏 + 只有白色鼠标指针**（1401 Issue #86）。此时系统已装好，按以下 1 分钟步骤跳过向导直达桌面：
-1. 重启进入 OpenCore，选择 **`Recovery 26.7.3`**。
-2. 顶部菜单栏打开 **实用工具 → 终端**，挂载 U 盘并运行脚本：
-   ```bash
-   diskutil mount 1401
-   sh /Volumes/1401/NullMoth/finish-setup.sh
-   ```
-   *(如果报 `: invalid option`，说明脚本带了 Windows 回车符，先执行 `tr -d '\r' < /Volumes/1401/NullMoth/finish-setup.sh > /tmp/fs.sh && sh /tmp/fs.sh`。)*
-3. 按提示输入小写英文用户名、全名（直接回车）、密码（输两次）。脚本会自动创建管理员账号、写入 `.AppleSetupDone` 并临时开启自动登录。
-4. 输入 `reboot` 重启，在 OpenCore 里选 **`MacOS`**，即可直接进入 macOS 26.7.3 桌面（首次进桌面无显卡加速会较卡，耐心等待几十秒）。
-
----
-
-### 五、安装 RTX 5060 Metal 3 驱动
-1. 进入桌面后，打开 `1401` U 盘中的 `NullMoth/` 文件夹，解压并运行 **`1401-Mac-3.0.zip`**（若系统拦截打不开，在终端执行 `xattr -cr ~/Downloads/1401.app`）。
-2. 按 `1401.app` 引导安装驱动（它会自动使用同目录里的离线驱动包 `nullmoth-nvidia-3.0.tar.gz` 与 NVIDIA 固件包，并自动向 OpenCore 添加安全回退工具项）。
-3. 装完重启进入 `MacOS`，即可体验 **RTX 5060 Metal 3 完整硬件加速** + **原生 Wi-Fi 7 菜单栏图标** + **外放/耳机声卡** + **触控板**！
-4. 登录界面恢复正常显示后，记得在 **系统设置 → 用户与群组** 中关闭第 4 步开启的“自动登录”。
-
----
-
-### 六、装后优化（强烈推荐）
-1. **解决 Windows / macOS 双系统时间差 8 小时**：
-   - 在 Windows 下右键**以管理员身份运行**本仓库的 `Scripts/Fix-Windows-UTC-Time.bat`（写入 `RealTimeIsUniversal = 1` 并立即联网同步）。
-2. **拔掉 U 盘直接双系统启动**：
-   - 将本 EFI 的 `EFI/OC` 目录复制到内置硬盘 ESP 分区的 `\EFI\OC`（**不要覆盖 `\EFI\Microsoft`**），通过 `bcdedit` 或主板 BIOS 新增指向 `\EFI\OC\OpenCore.efi` 的 UEFI 启动项并置顶即可。
-3. **可选：关闭开机跑码 `-v`（纯净苹果 Logo 启动）**：
-   - 一切稳定后，从 `NVRAM > Add > 7C436110-AB2A-4BBB-A880-FE41995C9F82 > boot-args` 中去掉 `-v` 并将 `Misc > Debug > Target` 设为 `3`。以后排障在 OpenCore 选 macOS 时按住 `Win + V`（`Cmd + V`）即可临时单次跑码。
-4. **可选：重新开启 UEFI 安全启动（已实测通过）**：
-   - 在 `config.plist` 中开启 `UEFI > Quirks > DisableSecurityPolicy = True`（`Misc > Security > SecureBootModel` 仍保持 `Disabled` 以兼容 NullMoth 驱动）；
-   - 自签一张 RSA-2048 SHA-256 代码签名证书，对 `EFI/OC/` 下全部 6 个 `.efi`（`OpenCore.efi`、`HfsPlus.efi`、`OpenCanopy.efi`、`OpenRuntime.efi`、`ResetNvramEntry.efi`、`NullMothSafe.efi`）签名；
-   - 在 BIOS 中进入 **Setup Mode**（清空密钥），在 Windows 下用 PowerShell 将联想原厂 `dbxDefault`、`dbDefault` + 自签证书追加写入 `db`，再写回原厂 `KEKDefault` 和 `PKDefault`，重启进 BIOS 打开 Secure Boot 即可双系统完美共存安全启动。
-
----
-
-## 致谢与许可（Credits & Licenses）
-
-本配置站在众多开源黑苹果项目之上，特此致谢（相关组件原始许可证位于 `LICENSES/` 目录）：
-
-- [Acidanthera / OpenCorePkg](https://github.com/acidanthera/OpenCorePkg) & `Lilu`, `VirtualSMC`, `AppleALC`, `RestrictEvents`, `BlueToolFixup`, `NVMeFix`, `VoodooPS2`, `BrightnessKeys`
-- [NullMoth / 1401](https://github.com/nullmoth/1401) & [nvidia-macos-driver](https://github.com/nullmoth/nvidia-macos-driver)（RTX 5060 Metal 3 驱动与 1401 构建工具）
-- [watchthelight-labs / WTLWireless](https://github.com/watchthelight-labs/WTLWireless) & [WTLLegionBtFix](https://github.com/watchthelight-labs/WTLLegionBtFix)（MediaTek MT7925 Wi-Fi 7 原生菜单与蓝牙驱动）
-- [laobamac / SimpleHDA](https://github.com/laobamac/SimpleHDA)（macOS 26 Tahoe 原版 AppleHDA 动态恢复）
-- [AMD-OSX / AMD_Vanilla](https://github.com/AMD-OSX/AMD_Vanilla) & [ChefKissInc / ForgedInvariant](https://github.com/ChefKissInc/ForgedInvariant)
-- [VoodooI2C / VoodooI2C](https://github.com/VoodooI2C/VoodooI2C) & [USBToolBox / kext](https://github.com/USBToolBox/kext)
-- [dortania / OpenCore-Install-Guide](https://dortania.github.io/OpenCore-Install-Guide/)
+- 上游核显驱动架构：[caoshiyuan0211-blip / winmax2-2022-6800u-hackintosh](https://github.com/caoshiyuan0211-blip/winmax2-2022-6800u-hackintosh)（`RembrandtGfx`）
+- 其余平台组件与开源许可：见 `LICENSES/` 目录及 [`main` 分支文档](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/blob/main/README.zh-CN.md)。
