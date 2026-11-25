@@ -12,6 +12,23 @@
 
 ---
 
+## 分支与发布版本
+
+> [!NOTE]
+> **实验性 AMD Radeon 610M 核显 + RTX 5060 双显卡分支已发布（`v0.1.0-alpha`）**
+>
+> 如需体验 **AMD Radeon 610M（`RembrandtGfx.kext`）** 核显驱动与 **RTX 5060（`NullMoth 3.1`）** 双显配置，请切换至 **[`igpu-610m-rembrandtgfx`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/tree/igpu-610m-rembrandtgfx)** 分支，并前往 **[Releases 页面](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases)** 下载 [`v0.1.0-alpha`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases/tag/v0.1.0-alpha) 预发布完整引导包（标记为 Pre-release，不影响 `main` 稳态分支）。
+
+| 分支 | 发布版本 | 显卡方案 | 状态 | 适用场景 |
+|---|---|---|---|---|
+| **`main`** *（默认）* | `v1.1.0` | RTX 5060 独显直连（`NullMoth v3.0`，屏蔽核显） | 稳定版（Stable） | 日常主力使用 |
+| **[`igpu-610m-rembrandtgfx`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/tree/igpu-610m-rembrandtgfx)** | [`v0.1.0-alpha`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases/tag/v0.1.0-alpha) | Radeon 610M（`RembrandtGfx.kext` 仿冒 `0x73ff`）+ RTX 5060（`NullMoth 3.1`） | 早期可用版（Alpha） | 核显测试与开发（建议用外置 U 盘 EFI 引导） |
+
+- **`igpu-610m-rembrandtgfx`（`v0.1.0-alpha`）已验证可用**：macOS 26.7.4（`MacPro7,1`）下 610M 核显基础显示与 Metal 图形加速可用；已修复 DarkWake / 合盖触发的 ~21 秒黑屏（`clamshell-sleep` 阻断）；支持配合 NullMoth 3.1 启用 RTX 5060；附带脱敏 OpenCore 1.0.9 完整 EFI（通过 `ocvalidate` 0 警告校验）。
+- **`igpu-610m-rembrandtgfx` 已知限制**：触发 GPU 硬件错误诊断时 `collect_stb` 会进入死循环并导致 WindowServer 看门狗灰屏超时（已定位指令级根因，下版合入 hook 修复）；BIOS 默认 1024 MB UMA 显存在高负载下易耗尽；内屏亮度调至最低全黑；完整休眠仍为实验状态。修改后的 `src/RembrandtGfx/` 源码将在导出后补推至该分支。
+
+---
+
 ## 实机截图
 
 | macOS 26.7.3 Tahoe 桌面（Liquid Glass & 原生 Wi-Fi 7） | 关于本机（RTX 5060 8 GB Metal 3） |
@@ -34,7 +51,7 @@
 | **机型 / 主板** | Lenovo ThinkBook 16p 2025 (G6 ADR, `21U0`, `LNVNB161216`) | 正常 | BIOS `R7CN28WW`（需切换独显直连） |
 | **处理器** | AMD Ryzen 9 8945HX (Dragon Range / Zen 4, 16C/32T) | 正常 | AMD Vanilla Patches + `ForgedInvariant.kext` v1.5.0 |
 | **独立显卡** | NVIDIA GeForce RTX 5060 Laptop GPU (`10DE:2D59`, 8 GB) | 正常 | **Metal 3 硬件加速**（通过 NullMoth v3.0 驱动） |
-| **核显** | AMD Radeon 610M (`1002:164E`) | 已屏蔽 | `DeviceProperties` 注入 `disable-gpu` |
+| **核显** | AMD Radeon 610M (`1002:164E`) | 已屏蔽（`main`） | `main` 分支通过 `DeviceProperties` 注入 `disable-gpu` 屏蔽；实验性核显驱动请见 [`igpu-610m-rembrandtgfx`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/tree/igpu-610m-rembrandtgfx) 分支 |
 | **内置屏幕** | CSOT `MNG007DA6-2` (2560×1600, eDP, 独显直连) | 正常 | 亮度和 `F5`/`F6` 快捷键可用（见下方已知限制） |
 | **无线网卡** | MediaTek Wi-Fi 7 MT7925 (`14C3:7925`, `17AA:E0FF`) | 正常 | `WTLWireless.kext` v0.15.0 + `WTLWirelessNative.kext`（**26.7.1–26.7.4 原生 Wi-Fi 图标**） |
 | **蓝牙** | MediaTek Bluetooth (`0489:E111`) | 正常 | `BlueToolFixup` v2.7.2 + `LegionBtFix` v0.3.0 + `WTLWirelessBt` v0.15.0 |
