@@ -12,6 +12,24 @@
 
 ---
 
+## Branches & Releases
+
+> [!NOTE]
+> **Experimental AMD Radeon 610M iGPU + RTX 5060 Dual-GPU Branch Available (`v0.1.0-alpha`)**
+>
+> Looking for **AMD Radeon 610M (`RembrandtGfx.kext`)** bring-up alongside **RTX 5060 (`NullMoth 3.1`)**?
+> Switch to the dedicated **[`igpu-610m-rembrandtgfx`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/tree/igpu-610m-rembrandtgfx)** branch and download the pre-release EFI package from the **[Releases page](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases)** (tag [`v0.1.0-alpha`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases/tag/v0.1.0-alpha)). It is published as a Pre-release and does not affect the stable `main` branch.
+
+| Branch | Release | Graphics Mode | Status | Recommended For |
+|---|---|---|---|---|
+| **`main`** *(default)* | `v1.1.0` | RTX 5060 dGPU Direct (`NullMoth v3.0`, iGPU disabled) | Stable | Daily driving |
+| **[`igpu-610m-rembrandtgfx`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/tree/igpu-610m-rembrandtgfx)** | [`v0.1.0-alpha`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases/tag/v0.1.0-alpha) | Radeon 610M (`RembrandtGfx.kext`, spoofed `0x73ff`) + RTX 5060 (`NullMoth 3.1`) | Alpha / Bring-up | Testing & development (external USB EFI recommended) |
+
+- **Working on `igpu-610m-rembrandtgfx` (`v0.1.0-alpha`)**: Radeon 610M basic display & Metal acceleration on macOS 26.7.4 (`MacPro7,1`), DarkWake ~21s black screen fixed (`clamshell-sleep` block), dual-GPU coexistence with NullMoth 3.1, and sanitized OpenCore 1.0.9 EFI (`ocvalidate` 0 issues).
+- **Known Issues on `igpu-610m-rembrandtgfx`**: GPU hardware error diagnosis can trigger an infinite loop in `collect_stb`, causing a WindowServer watchdog gray-screen hang (root cause identified, hook fix planned for next version); BIOS 1024 MB UMA VRAM can exhaust under heavy load; internal display goes black at minimum brightness; full sleep remains experimental. Modified `src/RembrandtGfx/` source code will be pushed to that branch shortly.
+
+---
+
 ## Screenshots
 
 | macOS 26.7.3 Tahoe Desktop (Liquid Glass & Native Wi-Fi 7) | About This Mac (RTX 5060 8 GB Metal 3) |
@@ -34,7 +52,7 @@
 | **Laptop / Board** | Lenovo ThinkBook 16p 2025 (G6 ADR, `21U0`, `LNVNB161216`) | Working | BIOS `R7CN28WW` (Discrete GPU / dGPU-Direct mode required) |
 | **CPU** | AMD Ryzen 9 8945HX (Dragon Range / Zen 4, 16C/32T) | Working | AMD Vanilla Patches + `ForgedInvariant.kext` v1.5.0 |
 | **dGPU** | NVIDIA GeForce RTX 5060 Laptop GPU (`10DE:2D59`, 8 GB) | Working | **Full Metal 3 hardware acceleration** via NullMoth v3.0 |
-| **iGPU** | AMD Radeon 610M (`1002:164E`) | Disabled | Disabled via `DeviceProperties` (`disable-gpu`) |
+| **iGPU** | AMD Radeon 610M (`1002:164E`) | Disabled (`main`) | Disabled via `DeviceProperties` (`disable-gpu`) on `main`; experimental driver available on [`igpu-610m-rembrandtgfx`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/tree/igpu-610m-rembrandtgfx) |
 | **Internal Display** | CSOT `MNG007DA6-2` (2560×1600, eDP, wired to dGPU) | Working | Brightness & `F5`/`F6` hotkeys work (see Known Limitations) |
 | **Wi-Fi** | MediaTek Wi-Fi 7 MT7925 (`14C3:7925`, `17AA:E0FF`) | Working | `WTLWireless.kext` v0.15.0 + `WTLWirelessNative.kext` (**Native Wi-Fi icon on 26.7.1–26.7.4**) |
 | **Bluetooth** | MediaTek Bluetooth (`0489:E111`) | Working | `BlueToolFixup` v2.7.2 + `LegionBtFix` v0.3.0 + `WTLWirelessBt` v0.15.0 |
