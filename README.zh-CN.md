@@ -15,17 +15,20 @@
 ## 分支与发布版本
 
 > [!NOTE]
-> **实验性 AMD Radeon 610M 核显 + RTX 5060 双显卡分支已发布（`v0.1.0-alpha`）**
+> **实验性 AMD Radeon 610M 核显 + RTX 5060 双显卡分支已更新至 `v0.2.0-alpha`**
 >
-> 如需体验 **AMD Radeon 610M（`RembrandtGfx.kext`）** 核显驱动与 **RTX 5060（`NullMoth 3.1`）** 双显配置，请切换至 **[`igpu-610m-rembrandtgfx`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/tree/igpu-610m-rembrandtgfx)** 分支，并前往 **[Releases 页面](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases)** 下载 [`v0.1.0-alpha`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases/tag/v0.1.0-alpha) 预发布完整引导包（标记为 Pre-release，不影响 `main` 稳态分支）。
+> 如需体验 **AMD Radeon 610M（`RembrandtGfx.kext`）** 核显驱动与 **RTX 5060（`NullMoth 3.1`）** 双显协同配置，请切换至 **[`igpu-610m-rembrandtgfx`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/tree/igpu-610m-rembrandtgfx)** 分支，并前往 **[Releases 页面](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases)** 下载 [`v0.2.0-alpha`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases/tag/v0.2.0-alpha) 预发布完整引导包（标记为 Pre-release，不影响 `main` 稳态分支）。
 
 | 分支 | 发布版本 | 显卡方案 | 状态 | 适用场景 |
 |---|---|---|---|---|
 | **`main`** *（默认）* | `v1.1.0` | RTX 5060 独显直连（`NullMoth v3.0`，屏蔽核显） | 稳定版（Stable） | 日常主力使用 |
-| **[`igpu-610m-rembrandtgfx`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/tree/igpu-610m-rembrandtgfx)** | [`v0.1.0-alpha`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases/tag/v0.1.0-alpha) | Radeon 610M（`RembrandtGfx.kext` 仿冒 `0x73ff`）+ RTX 5060（`NullMoth 3.1`） | 早期可用版（Alpha） | 核显测试与开发（建议用外置 U 盘 EFI 引导） |
+| **[`igpu-610m-rembrandtgfx`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/tree/igpu-610m-rembrandtgfx)** | [`v0.2.0-alpha`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases/tag/v0.2.0-alpha) | Radeon 610M（`RembrandtGfx.kext` 仿冒 `0x73ff`）+ RTX 5060（`NullMoth 3.1`） | 早期可用版（Alpha / 双显卡） | 核显测试与双卡开发（建议用外置 U 盘 EFI 引导） |
 
-- **`igpu-610m-rembrandtgfx`（`v0.1.0-alpha`）已验证可用**：macOS 26.7.4（`MacPro7,1`）下 610M 核显基础显示与 Metal 图形加速可用；已修复 DarkWake / 合盖触发的 ~21 秒黑屏（`clamshell-sleep` 阻断）；支持配合 NullMoth 3.1 启用 RTX 5060；附带脱敏 OpenCore 1.0.9 完整 EFI（通过 `ocvalidate` 0 警告校验）。
-- **`igpu-610m-rembrandtgfx` 已知限制**：触发 GPU 硬件错误诊断时 `collect_stb` 会进入死循环并导致 WindowServer 看门狗灰屏超时（已定位指令级根因，下版合入 hook 修复）；BIOS 默认 1024 MB UMA 显存在高负载下易耗尽；内屏亮度调至最低全黑；完整休眠仍为实验状态。修改后的 `src/RembrandtGfx/` 源码将在导出后补推至该分支。
+- **`igpu-610m-rembrandtgfx`（`v0.2.0-alpha`）已验证可用**：
+  - macOS 26.7.4（`MacPro7,1`）下 610M 核显显示与 Metal 加速可用；已修复 DarkWake ~21 秒黑屏（`clamshell-sleep` 阻断）以及 **`collect_stb` 持锁死循环导致的 40 秒 `WindowServer` 看门狗重启**；补齐 GC 10.3.6 黄金寄存器与 `0xFFFFFFFF` MMIO 防护，附带脱敏 OpenCore 1.0.9 完整 EFI。
+  - **NullMoth 3.1（RTX 5060）双显卡协同共存**：610M 标记 `isLowPower = true`，RTX 5060 标记 `isRemovable = true`（支持在访达“显示简介”中为任意应用勾选 **“首选外部 GPU”**），适配 NullMoth 3.1 `nvcopy` BAR1 WC `movnti` 写合并加速与热插拔自动布防。
+  - **驱动源码已开源**：[`Yangcheng811/raphael-610m-gfx`](https://github.com/Yangcheng811/raphael-610m-gfx)。
+- **`igpu-610m-rembrandtgfx` 已知限制**：610M 2 GB UMA 显存在 Chrome / 动态壁纸等重负载下仍易耗尽（`AMD ERROR! Failed to allocate`），建议为 Chrome 等重度图形应用勾选“首选外部 GPU”分流至 8 GB 显存的 RTX 5060；内屏亮度调至最低全黑；完整休眠仍为实验状态。
 
 ---
 

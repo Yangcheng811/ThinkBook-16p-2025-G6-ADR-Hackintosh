@@ -15,18 +15,21 @@
 ## Branches & Releases
 
 > [!NOTE]
-> **Experimental AMD Radeon 610M iGPU + RTX 5060 Dual-GPU Branch Available (`v0.1.0-alpha`)**
+> **Experimental AMD Radeon 610M iGPU + RTX 5060 Dual-GPU Branch Available (`v0.2.0-alpha`)**
 >
-> Looking for **AMD Radeon 610M (`RembrandtGfx.kext`)** bring-up alongside **RTX 5060 (`NullMoth 3.1`)**?
-> Switch to the dedicated **[`igpu-610m-rembrandtgfx`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/tree/igpu-610m-rembrandtgfx)** branch and download the pre-release EFI package from the **[Releases page](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases)** (tag [`v0.1.0-alpha`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases/tag/v0.1.0-alpha)). It is published as a Pre-release and does not affect the stable `main` branch.
+> Looking for **AMD Radeon 610M (`RembrandtGfx.kext`)** alongside **RTX 5060 (`NullMoth 3.1`)**?
+> Switch to the dedicated **[`igpu-610m-rembrandtgfx`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/tree/igpu-610m-rembrandtgfx)** branch and download the pre-release EFI package from the **[Releases page](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases)** (tag [`v0.2.0-alpha`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases/tag/v0.2.0-alpha)). It is published as a Pre-release and does not affect the stable `main` branch.
 
 | Branch | Release | Graphics Mode | Status | Recommended For |
 |---|---|---|---|---|
 | **`main`** *(default)* | `v1.1.0` | RTX 5060 dGPU Direct (`NullMoth v3.0`, iGPU disabled) | Stable | Daily driving |
-| **[`igpu-610m-rembrandtgfx`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/tree/igpu-610m-rembrandtgfx)** | [`v0.1.0-alpha`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases/tag/v0.1.0-alpha) | Radeon 610M (`RembrandtGfx.kext`, spoofed `0x73ff`) + RTX 5060 (`NullMoth 3.1`) | Alpha / Bring-up | Testing & development (external USB EFI recommended) |
+| **[`igpu-610m-rembrandtgfx`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/tree/igpu-610m-rembrandtgfx)** | [`v0.2.0-alpha`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases/tag/v0.2.0-alpha) | Radeon 610M (`RembrandtGfx.kext`, spoofed `0x73ff`) + RTX 5060 (`NullMoth 3.1`) | Alpha / Dual-GPU | Testing & dual-GPU development (external USB EFI recommended) |
 
-- **Working on `igpu-610m-rembrandtgfx` (`v0.1.0-alpha`)**: Radeon 610M basic display & Metal acceleration on macOS 26.7.4 (`MacPro7,1`), DarkWake ~21s black screen fixed (`clamshell-sleep` block), dual-GPU coexistence with NullMoth 3.1, and sanitized OpenCore 1.0.9 EFI (`ocvalidate` 0 issues).
-- **Known Issues on `igpu-610m-rembrandtgfx`**: GPU hardware error diagnosis can trigger an infinite loop in `collect_stb`, causing a WindowServer watchdog gray-screen hang (root cause identified, hook fix planned for next version); BIOS 1024 MB UMA VRAM can exhaust under heavy load; internal display goes black at minimum brightness; full sleep remains experimental. Modified `src/RembrandtGfx/` source code will be pushed to that branch shortly.
+- **Working on `igpu-610m-rembrandtgfx` (`v0.2.0-alpha`)**:
+  - Radeon 610M display & Metal acceleration on macOS 26.7.4 (`MacPro7,1`), DarkWake ~21 s black screen fixed (`clamshell-sleep` block), **`collect_stb` 40 s `WindowServer` Watchdog deadlock fixed**, GC 10.3.6 golden registers + `0xFFFFFFFF` MMIO guards, and sanitized OpenCore 1.0.9 EFI.
+  - **NullMoth 3.1 RTX 5060 Dual-GPU Coexistence**: AMD 610M marked `isLowPower = true`, RTX 5060 marked `isRemovable = true` (enabling Finder's **"Prefer External GPU"** checkbox per app), NullMoth 3.1 `nvcopy` WC BAR1 `movnti` acceleration, and automatic hotplug arming.
+  - **Driver Source Code**: Published at [`Yangcheng811/raphael-610m-gfx`](https://github.com/Yangcheng811/raphael-610m-gfx).
+- **Known Issues on `igpu-610m-rembrandtgfx`**: Under heavy desktop/browser load, the 610M's 2 GB UMA VRAM can still exhaust (`AMD ERROR! Failed to allocate`) — enable **"Prefer External GPU"** on Chrome and GPU-heavy apps to offload them to the 8 GB RTX 5060; internal display goes black at minimum brightness; full sleep/wake remains experimental.
 
 ---
 
