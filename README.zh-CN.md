@@ -21,7 +21,7 @@
 
 | 分支 | 发布版本 | 显卡方案 | 状态 | 适用场景 |
 |---|---|---|---|---|
-| **`main`** *（默认）* | `v1.1.0` | RTX 5060 独显直连（`NullMoth v3.0`，屏蔽核显） | 稳定版（Stable） | 日常主力使用 |
+| **`main`** *（默认）* | [`v1.1.1`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases/tag/v1.1.1) | RTX 5060 独显直连（`NullMoth v3.0`，屏蔽核显） | 稳定版（Stable） | 日常主力使用 |
 | **[`igpu-610m-rembrandtgfx`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/tree/igpu-610m-rembrandtgfx)** | [`v0.2.0-alpha`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases/tag/v0.2.0-alpha) | Radeon 610M（`RembrandtGfx.kext` 仿冒 `0x73ff`）+ RTX 5060（`NullMoth 3.1`） | 早期可用版（Alpha / 双显卡） | 核显测试与双卡开发（建议用外置 U 盘 EFI 引导） |
 
 - **`igpu-610m-rembrandtgfx`（`v0.2.0-alpha`）已验证可用**：
@@ -56,8 +56,8 @@
 | **独立显卡** | NVIDIA GeForce RTX 5060 Laptop GPU (`10DE:2D59`, 8 GB) | 正常 | **Metal 3 硬件加速**（通过 NullMoth v3.0 驱动） |
 | **核显** | AMD Radeon 610M (`1002:164E`) | 已屏蔽（`main`） | `main` 分支通过 `DeviceProperties` 注入 `disable-gpu` 屏蔽；实验性核显驱动请见 [`igpu-610m-rembrandtgfx`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/tree/igpu-610m-rembrandtgfx) 分支 |
 | **内置屏幕** | CSOT `MNG007DA6-2` (2560×1600, eDP, 独显直连) | 正常 | 亮度和 `F5`/`F6` 快捷键可用（见下方已知限制） |
-| **无线网卡** | MediaTek Wi-Fi 7 MT7925 (`14C3:7925`, `17AA:E0FF`) | 正常 | `WTLWireless.kext` v0.15.0 + `WTLWirelessNative.kext`（**26.7.1–26.7.4 原生 Wi-Fi 图标**） |
-| **蓝牙** | MediaTek Bluetooth (`0489:E111`) | 正常 | `BlueToolFixup` v2.7.2 + `LegionBtFix` v0.3.0 + `WTLWirelessBt` v0.15.0 |
+| **无线网卡** | MediaTek Wi-Fi 7 MT7925 (`14C3:7925`, `17AA:E0FF`) | 正常 | `WTLWireless.kext` v0.15.5 + `WTLWirelessNative.kext`（**26.7.1–26.7.4 原生 Wi-Fi 图标，已修复 iPhone 个人热点连接**，[PR #15](https://github.com/watchthelight-labs/WTLWireless/pull/15)） |
+| **蓝牙** | MediaTek Bluetooth (`0489:E111`) | 正常 | `BlueToolFixup` v2.7.2 + `LegionBtFix` v0.3.0 + `WTLWirelessBt` v0.15.5 |
 | **声卡** | Realtek ALC3287 / ALC257 (`10EC:0257`, `17AA:3E22`, AMD `1022:15E3`) | 正常 | **`SimpleHDA` v1.0.1 + `AppleALC` v1.9.9**（`layout-id = 18` + `nmxaudio=2`），内置双扬声器 & 3.5mm 耳机自动切换均正常 |
 | **HDMI/DP 音频** | NVIDIA High Definition Audio (`10DE:22EB`) | 正常 | `NMXAudio.kext`（`nmxaudio=2` 仅接管 NVIDIA HDMI/DP） |
 | **触控板** | I2C HID Touchpad (`SYNA2BA6`) | 正常 | `VoodooI2C` + `VoodooI2CHID` + `-vi2c-force-polling`（已剔除 `VoodooGPIOAMD` 防卡死） |
@@ -95,7 +95,7 @@
 5. **解决 macOS 关机变重启 / 不断电，并适配 macOS 26.7.4 原生 Wi-Fi**：
    - 新增定制 **`SSDT-FixShutdown.aml`** 与 DSDT `_PTS -> ZPTS`（`5F50545301` → `5A50545301`，`Count = 1`），仅在 `_OSI("Darwin") && Arg0 == 0x05`（macOS S5 关机）时动态遍历 `\_SB.PCI0.GP17.XHC0`、`\_SB.PCI0.GP17.XHC1`、`\_SB.PCI0.GP19.XHC2` 的 PCI Capability List（Cap ID `0x01`），清零 `PME_En` 并清除 `PME_Status`，彻底解决关机变重启/不断电；
    - 为 **`SSDT-ALIBFix.aml`** 补齐 `_OSI("Darwin")` 保护，避免在非 macOS 系统下吞掉 AMD 原厂 `\_SB.ALIB` 调用；
-   - 更新 **`WTLWirelessNative.kext`** 的 `MtkNativeAbi` 白名单以支持 **macOS 26.7.4**（`xnu-12377.`），同时完整保留全部 15 个内核类的实时 `OSMetaClass::getClassSize()` 安全校验；
+   - 升级 **`WTLWireless.kext` 至 v0.15.5**（含 `HDR_TRANS` 广播 DHCP 修复与 5.9 GHz 功率表），补齐 **macOS 26.7.4 (`25G422`)** 原生 ABI，并修复 Tahoe 下未启用 `0x37`/`0x31` 就绪事件与 `getHW_ADDR (0x167)` 导致 **iPhone 个人热点及关闭私有无线局域网地址的 Wi-Fi 报 `0xe00002c2` 无法连接** 的问题（已提交上游 [Issue #14](https://github.com/watchthelight-labs/WTLWireless/issues/14) / [PR #15](https://github.com/watchthelight-labs/WTLWireless/pull/15)），同时补全 `Scripts/WTLWireless-Recovery/` 恢复模式联网脚本；
    - **双系统提示**：如需在 Windows 11 中正常使用休眠/快速启动，建议在 BIOS 中将 **`Windows Boot Manager`** 放第一启动项，进 macOS 时开机按 **`F12`** 选 `OpenCore`，避免 OpenCore 的全局 DSDT IRQ 补丁影响 Windows 电源管理。
 
 ---

@@ -22,7 +22,7 @@
 
 | Branch | Release | Graphics Mode | Status | Recommended For |
 |---|---|---|---|---|
-| **`main`** *(default)* | `v1.1.0` | RTX 5060 dGPU Direct (`NullMoth v3.0`, iGPU disabled) | Stable | Daily driving |
+| **`main`** *(default)* | [`v1.1.1`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases/tag/v1.1.1) | RTX 5060 dGPU Direct (`NullMoth v3.0`, iGPU disabled) | Stable | Daily driving |
 | **[`igpu-610m-rembrandtgfx`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/tree/igpu-610m-rembrandtgfx)** | [`v0.2.0-alpha`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases/tag/v0.2.0-alpha) | Radeon 610M (`RembrandtGfx.kext`, spoofed `0x73ff`) + RTX 5060 (`NullMoth 3.1`) | Alpha / Dual-GPU | Testing & dual-GPU development (external USB EFI recommended) |
 
 - **Working on `igpu-610m-rembrandtgfx` (`v0.2.0-alpha`)**:
@@ -57,8 +57,8 @@
 | **dGPU** | NVIDIA GeForce RTX 5060 Laptop GPU (`10DE:2D59`, 8 GB) | Working | **Full Metal 3 hardware acceleration** via NullMoth v3.0 |
 | **iGPU** | AMD Radeon 610M (`1002:164E`) | Disabled (`main`) | Disabled via `DeviceProperties` (`disable-gpu`) on `main`; experimental driver available on [`igpu-610m-rembrandtgfx`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/tree/igpu-610m-rembrandtgfx) |
 | **Internal Display** | CSOT `MNG007DA6-2` (2560×1600, eDP, wired to dGPU) | Working | Brightness & `F5`/`F6` hotkeys work (see Known Limitations) |
-| **Wi-Fi** | MediaTek Wi-Fi 7 MT7925 (`14C3:7925`, `17AA:E0FF`) | Working | `WTLWireless.kext` v0.15.0 + `WTLWirelessNative.kext` (**Native Wi-Fi icon on 26.7.1–26.7.4**) |
-| **Bluetooth** | MediaTek Bluetooth (`0489:E111`) | Working | `BlueToolFixup` v2.7.2 + `LegionBtFix` v0.3.0 + `WTLWirelessBt` v0.15.0 |
+| **Wi-Fi** | MediaTek Wi-Fi 7 MT7925 (`14C3:7925`, `17AA:E0FF`) | Working | `WTLWireless.kext` v0.15.5 + `WTLWirelessNative.kext` (**Native Wi-Fi on 26.7.1–26.7.4, iPhone Personal Hotspot fixed**, [PR #15](https://github.com/watchthelight-labs/WTLWireless/pull/15)) |
+| **Bluetooth** | MediaTek Bluetooth (`0489:E111`) | Working | `BlueToolFixup` v2.7.2 + `LegionBtFix` v0.3.0 + `WTLWirelessBt` v0.15.5 |
 | **Audio** | Realtek ALC3287 / ALC257 (`10EC:0257`, `17AA:3E22`, AMD `1022:15E3`) | Working | **`SimpleHDA` v1.0.1 + `AppleALC` v1.9.9** (`layout-id = 18` + `nmxaudio=2`), both internal stereo speakers & 3.5mm auto-switching work |
 | **HDMI/DP Audio** | NVIDIA High Definition Audio (`10DE:22EB`) | Working | `NMXAudio.kext` (`nmxaudio=2` restricts it to NVIDIA HDMI/DP only) |
 | **Touchpad** | I2C HID Touchpad (`SYNA2BA6`) | Working | `VoodooI2C` + `VoodooI2CHID` + `-vi2c-force-polling` (`VoodooGPIOAMD` stripped to prevent boot hang) |
@@ -96,7 +96,7 @@ If you are building a Hackintosh on a similar AMD Ryzen 9 8945HX (Dragon Range) 
 5. **Fix macOS S5 Shutdown Turning into Reboot & Improve Dual-Boot Windows Compatibility**:
    - Added custom **`SSDT-FixShutdown.aml`** + DSDT `_PTS -> ZPTS` (`5F50545301` → `5A50545301`, `Count = 1`) guarded by `_OSI("Darwin") && Arg0 == 0x05`: dynamically walks the PCI Capability List (Cap ID `0x01`) on `\_SB.PCI0.GP17.XHC0`, `\_SB.PCI0.GP17.XHC1`, and `\_SB.PCI0.GP19.XHC2` to clear `PME_En` and `PME_Status` before S5 power-off;
    - Added `_OSI("Darwin")` guard to **`SSDT-ALIBFix.aml`** so non-macOS OSes forward `\_SB.ALIB` back to `\_SB.XLIB`;
-   - Updated **`WTLWirelessNative.kext`** `MtkNativeAbi` allow-list for **macOS 26.7.4** (`xnu-12377.`), preserving the live 15-class `OSMetaClass::getClassSize()` runtime safety guard;
+   - Upgraded **`WTLWireless.kext` to v0.15.5** (including `HDR_TRANS` broadcast DHCP fix and 5.9 GHz SKU tables), added **macOS 26.7.4 (`25G422`)** native ABI, and fixed Tahoe missing `0x37`/`0x31` WCL-ready events + `getHW_ADDR (0x167)` which caused **iPhone Personal Hotspots and networks with Private Wi-Fi Address Off to fail with `0xe00002c2`** (submitted upstream in [Issue #14](https://github.com/watchthelight-labs/WTLWireless/issues/14) / [PR #15](https://github.com/watchthelight-labs/WTLWireless/pull/15)), plus restored `Scripts/WTLWireless-Recovery/` helper scripts;
    - **Dual-Boot Tip**: If you use Windows 11 Hibernate / Fast Startup, set **`Windows Boot Manager`** first in BIOS and press **`F12`** to boot `OpenCore` for macOS so Windows never receives OpenCore's global DSDT IRQ patches.
 
 ---
