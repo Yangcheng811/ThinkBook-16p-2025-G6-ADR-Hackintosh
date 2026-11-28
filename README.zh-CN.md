@@ -6,7 +6,7 @@
 
 > **分支说明（`igpu-610m-rembrandtgfx` — 双显卡共存版 `v0.2.0-alpha`）**
 > - 本分支发布 **ThinkBook 16p 2025 G6 ADR (Ryzen 9 8945HX)** 的 **AMD Radeon 610M (`1002:164e`) 核显 + RTX 5060 双显卡 OpenCore 1.0.9 引导 EFI**，基于自研移植的 **`RembrandtGfx.kext`**（[源码仓库](https://github.com/Yangcheng811/raphael-610m-gfx)，源自 [caoshiyuan0211-blip/winmax2-2022-6800u-hackintosh](https://github.com/caoshiyuan0211-blip/winmax2-2022-6800u-hackintosh) 移植适配 **Raphael / `gfx1036`**，在 **macOS 26.7.4 (`25G422`)** 下仿冒 `0x73ff` RX 6600 启用 Metal 加速），并与 **NullMoth 3.1**（RTX 5060 Laptop GPU）深度协同共存。
-> - 如需日常稳定使用的 **独显直连（RTX 5060）** 正式版 EFI，请切换到 [`main`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/tree/main) 分支（`v1.1.0`）。
+> - 如需日常稳定使用的 **独显直连（RTX 5060）** 正式版 EFI，请切换到 [`main`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/tree/main) 分支（[`v1.1.1`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases/tag/v1.1.1)）。
 > - **隐私脱敏**：`EFI/OC/config.plist` 中 `PlatformInfo > Generic` 已还原为占位符，**使用前请自行生成 `MacPro7,1` 三码**。
 
 ---
@@ -42,7 +42,10 @@
 - **DarkWake / 合盖 ~21 秒黑屏已修复**：
   - `sleep.cpp` 内置 `clamshell-sleep` 阻断，消除开机 DarkWake 黑屏。
 - **NVIDIA RTX 5060 Laptop GPU（`10de:2d59`, `17aa:8036`）协同工作**：
-  - 双卡同时被 Metal 正确枚举（`610M: lowPower=true`，`RTX 5060: lowPower=false, removable=true`）；支持 NVDEC 视频硬解及按应用勾选“首选外部 GPU”分流负载。
+  - 双卡同时被 Metal 正确枚举（`610M: lowPower=true`，`RTX 5060: lowPower=false, removable=true`）；支持 NVDEC 视频硬解、按应用勾选“首选外部 GPU”，或执行 `defaults write -g GPUSelectionPolicy preferRemovable && defaults write com.apple.Metal deviceNameMatch "NVIDIA"` 全局将用户态 Metal 应用默认分流到 RTX 5060。
+- **内屏 120 Hz 高刷 + MT7925 原生 Wi-Fi / iPhone 个人热点正常**：
+  - 将 `Scripts/DisplayVendorID-e77/DisplayProductID-1659` 复制到 `/Library/Displays/Contents/Resources/Overrides/DisplayVendorID-e77/` 即可在 610M 核显下开启 `2560 × 1600 @ 120 Hz`（DSC 12 bpp）；
+  - 已同步升级 `WTLWireless.kext` 至 **v0.15.5** 并合入 Tahoe `25G422` + `0x37/0x31/0x167` 修复（[PR #15](https://github.com/watchthelight-labs/WTLWireless/pull/15)），iPhone 个人热点与常规 WPA2 Wi-Fi 均可正常连接。
 
 ---
 

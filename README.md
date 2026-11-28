@@ -6,7 +6,7 @@
 
 > **Branch Notice (`igpu-610m-rembrandtgfx` — Dual-GPU Coexistence `v0.2.0-alpha`)**
 > - This branch provides the **experimental AMD Radeon 610M (`1002:164e`) iGPU + RTX 5060 Dual-GPU OpenCore 1.0.9 EFI** powered by our custom-ported **`RembrandtGfx.kext`** ([source repository](https://github.com/Yangcheng811/raphael-610m-gfx), ported from [caoshiyuan0211-blip/winmax2-2022-6800u-hackintosh](https://github.com/caoshiyuan0211-blip/winmax2-2022-6800u-hackintosh) to **Raphael / `gfx1036`**, spoofing `0x73ff` RX 6600 on **macOS 26.7.4 (`25G422`)**) alongside **NullMoth 3.1** for the NVIDIA RTX 5060 Laptop GPU.
-> - Looking for the **stable daily-driver dGPU-only (RTX 5060) EFI**? Switch to the [`main`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/tree/main) branch (`v1.1.0`).
+> - Looking for the **stable daily-driver dGPU-only (RTX 5060) EFI**? Switch to the [`main`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/tree/main) branch ([`v1.1.1`](https://github.com/Yangcheng811/ThinkBook-16p-2025-G6-ADR-Hackintosh/releases/tag/v1.1.1)).
 > - **SMBIOS Sanitized**: `PlatformInfo > Generic` contains placeholder values — **generate your own `MacPro7,1` SMBIOS before booting**.
 
 ---
@@ -42,7 +42,10 @@
 - **DarkWake / Clamshell ~21 s Black Screen Fixed**:
   - `clamshell-sleep` block in `sleep.cpp` eliminates DarkWake / `setOutputPowerState(1)` black screens at boot.
 - **NVIDIA RTX 5060 Laptop GPU (`10de:2d59`, `17aa:8036`) Co-Enabled**:
-  - Both GPUs enumerate in Metal (`610M: lowPower=true`, `RTX 5060: lowPower=false, removable=true`); NVDEC video decode and per-app "Prefer External GPU" offloading work alongside the 610M display output.
+  - Both GPUs enumerate in Metal (`610M: lowPower=true`, `RTX 5060: lowPower=false, removable=true`); supports NVDEC video decode, per-app "Prefer External GPU", or global default Metal offloading to RTX 5060 via `defaults write -g GPUSelectionPolicy preferRemovable && defaults write com.apple.Metal deviceNameMatch "NVIDIA"`.
+- **120 Hz Internal eDP & MT7925 Native Wi-Fi / iPhone Personal Hotspot**:
+  - Copy `Scripts/DisplayVendorID-e77/DisplayProductID-1659` into `/Library/Displays/Contents/Resources/Overrides/DisplayVendorID-e77/` to unlock `2560 × 1600 @ 120 Hz` (DSC 12 bpp) on the 610M iGPU;
+  - Synced `WTLWireless.kext` **v0.15.5** with the Tahoe `25G422` + `0x37/0x31/0x167` fix ([PR #15](https://github.com/watchthelight-labs/WTLWireless/pull/15)) for reliable iPhone Personal Hotspot and WPA2 connections.
 
 ---
 
